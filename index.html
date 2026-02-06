@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Sugarcane Stall Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  background: linear-gradient(160deg, #69b0aa, #202422);
+}
+
+.container {
+  max-width: 420px;
+  margin: auto;
+  padding: 15px;
+}
+
+.card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 15px;
+  margin-bottom: 15px;
+  box-shadow: 0 12px 25px rgba(0,0,0,0.2);
+}
+
+h1 {
+  text-align: center;
+  color: #af5833;
+}
+
+label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+input, select {
+  width: 100%;
+  padding: 14px;
+  margin-top: 6px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+}
+
+button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  border: none;
+  border-radius: 10px;
+  background: #11998e;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.small-btn {
+  font-size: 12px;
+  padding: 6px 8px;
+}
+
+.summary {
+  text-align: center;
+}
+
+.profit {
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.positive { color: green; }
+.negative { color: red; }
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 0;
+  border-bottom: 1px dashed #ccc;
+  font-size: 13px;
+}
+
+.hidden {
+  display: none;
+}
+
+.export {
+  background: #333;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>🥤 Sugarcane Stall</h1>
+
+<!-- HISTORY -->
+<div class="card">
+  <button onclick="toggleHistory()">📜 History / Data</button>
+  <div id="historySection" class="hidden">
+    <div id="historyList"></div>
+  </div>
+</div>
+
+<!-- ENTRY -->
+<div class="card">
+  <label>Date</label>
+  <select id="date">
+    <option value="">-- Select Day --</option>
+    <option>27 Feb (Day-1)</option>
+    <option>28 Feb (Day-2)</option>
+  </select>
+
+  <label style="margin-top:8px;">Time Slot</label>
+  <select id="hour">
+    <option value="">-- Select Slot --</option>
+    <option>3 PM - 4 PM</option>
+    <option>4 PM - 5 PM</option>
+    <option>5 PM - 6 PM</option>
+    <option>6 PM - 7 PM</option>
+    <option>7 PM - 8 PM</option>
+    <option>8 PM - 9 PM</option>
+    <option>9 PM - 10 PM</option>
+  </select>
+
+  <label style="margin-top:8px;">Amount (₹)</label>
+  <input type="number" id="amount" placeholder="Enter amount">
+
+  <button onclick="addSale()">Add Entry</button>
+</div>
+
+<!-- SUMMARY -->
+<div class="card summary">
+  <h2>Total Sales: ₹ <span id="totalSales">0</span></h2>
+  <div id="profit" class="profit negative">Profit/Loss: ₹ -30000</div>
+  <small>Investment: ₹30,000</small>
+</div>
+
+<div class="card">
+  <button class="export" onclick="exportCSV()">📤 Export to Excel</button>
+</div>
+
+</div>
+
+<script>
+const INVESTMENT = 30000;
+const STORAGE_KEY = "sugarcane_sales_final";
+
+let data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+let totalSales = 0;
+
+function save() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+function toggleHistory() {
+  historySection.classList.toggle("hidden");
+}
+
+function addSale() {
+  if (!dateSel.value || !hourSel.value || !amountInput.value) {
+    alert("Select date, time slot and enter amount");
+    return;
+  }
+
+  // Block duplicate slot per date
+  const exists = data.find(
+    d => d.date === dateSel.value && d.hour === hourSel.value
+  );
+  if (exists) {
+    alert("This time slot is already entered.\nPlease edit from History.");
+    return;
+  }
+
+  data.push({
+    date: dateSel.value,
+    hour: hourSel.value,
+    amount: Number(amountInput.value)
+  });
+
+  save();
+  render();
+
+  // Auto select next slot
+  const currentIndex = hourSel.selectedIndex;
+  if (currentIndex < hourSel.options.length - 1) {
+    hourSel.selectedIndex = currentIndex + 1;
+  } else {
+    hourSel.selectedIndex = 0;
+  }
+
+  amountInput.value = "";
+}
+
+function editEntry(index) {
+  const newAmount = prompt("Edit final amount:", data[index].amount);
+  if (newAmount !== null && !isNaN(newAmount)) {
+    data[index].amount = Number(newAmount);
+    save();
+    render();
+  }
+}
+
+function render() {
+  historyList.innerHTML = "";
+  totalSales = 0;
+
+  data.forEach((d, i) => {
+    totalSales += d.amount;
+
+    const row = document.createElement("div");
+    row.className = "row";
+    row.innerHTML = `
+      <span>${d.date}</span>
+      <span>${d.hour}</span>
+      <span>₹${d.amount}</span>
+      <button class="small-btn" onclick="editEntry(${i})">✏️</button>
+    `;
+    historyList.appendChild(row);
+  });
+
+  totalSalesSpan.innerText = totalSales;
+  const profitVal = totalSales - INVESTMENT;
+  profitDiv.innerText = "Profit/Loss: ₹ " + profitVal;
+  profitDiv.className = profitVal >= 0 ? "profit positive" : "profit negative";
+}
+
+function exportCSV() {
+  let csv = "Date,Time Slot,Amount\n";
+  data.forEach(d => {
+    csv += `${d.date},${d.hour},${d.amount}\n`;
+  });
+
+  csv += `\nTotal Sales,${totalSales}\nInvestment,${INVESTMENT}\nProfit/Loss,${totalSales - INVESTMENT}`;
+
+  const blob = new Blob([csv], { type: "text/csv" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "sugarcane_sales.csv";
+  a.click();
+}
+
+// DOM refs
+const dateSel = document.getElementById("date");
+const hourSel = document.getElementById("hour");
+const amountInput = document.getElementById("amount");
+const historyList = document.getElementById("historyList");
+const historySection = document.getElementById("historySection");
+const totalSalesSpan = document.getElementById("totalSales");
+const profitDiv = document.getElementById("profit");
+
+// Load cached data
+render();
+</script>
+
+</body>
+</html>

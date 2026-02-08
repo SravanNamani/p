@@ -1,270 +1,165 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Sugarcane Stall Dashboard</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Sugarcane Stall Login</title>
 
 <style>
 * { box-sizing: border-box; }
 
 body {
   margin: 0;
-  font-family: system-ui, sans-serif;
-  background: #f1f5f9;
+  min-height: 100vh;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+  background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
 }
 
-.container {
-  max-width: 420px;
-  margin: auto;
-  padding: 15px;
+/* GLITCH MODE */
+body.glitch {
+  animation: shake 0.15s infinite;
+  filter: blur(2px) brightness(0.7);
+}
+
+@keyframes shake {
+  0% { transform: translate(2px, 1px); }
+  25% { transform: translate(-2px, -1px); }
+  50% { transform: translate(2px, -1px); }
+  75% { transform: translate(-2px, 1px); }
+  100% { transform: translate(0, 0); }
 }
 
 .card {
-  background: #fff;
-  border-radius: 16px;
-  padding: 15px;
-  margin-bottom: 15px;
-  box-shadow: 0 12px 25px rgba(0,0,0,0.15);
+  width: 100%;
+  max-width: 380px;
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(14px);
+  border-radius: 20px;
+  padding: 28px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+  text-align: center;
 }
 
 h1 {
-  text-align: center;
-  color: #166534;
+  margin: 0 0 6px;
+  font-size: 22px;
 }
 
-label {
-  font-size: 14px;
-  font-weight: 600;
+p {
+  margin: 0 0 18px;
+  font-size: 13px;
+  color: #cbd5e1;
 }
 
-input, select {
+input {
   width: 100%;
   padding: 14px;
-  margin-top: 6px;
-  border-radius: 10px;
-  border: 1px solid #ccc;
-  font-size: 16px;
+  border-radius: 14px;
+  border: none;
+  font-size: 15px;
+  outline: none;
+  margin-bottom: 16px;
 }
 
 button {
   width: 100%;
-  padding: 12px;
-  margin-top: 10px;
+  padding: 14px;
+  border-radius: 14px;
   border: none;
-  border-radius: 10px;
-  background: #16a34a;
-  color: white;
   font-size: 16px;
-  font-weight: bold;
+  font-weight: 700;
+  cursor: pointer;
+  background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+  color: #022c3a;
 }
 
-.small-btn {
-  font-size: 12px;
-  padding: 6px 8px;
+button:active {
+  transform: scale(0.97);
 }
 
-.summary {
-  text-align: center;
+.footer {
+  margin-top: 12px;
+  font-size: 11px;
+  color: #94a3b8;
 }
-
-.profit {
-  font-size: 22px;
-  font-weight: bold;
-}
-
-.positive { color: green; }
-.negative { color: red; }
-
-.row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 0;
-  border-bottom: 1px dashed #ccc;
-  font-size: 13px;
-}
-
-.hidden { display: none; }
-
-.export { background: #334155; }
 </style>
 </head>
 
 <body>
 
-<div class="container">
-
-<h1>🥤 Sugarcane Stall</h1>
-
-<!-- HISTORY -->
 <div class="card">
-  <button onclick="toggleHistory()">📜 History / Data</button>
-  <div id="historySection" class="hidden">
-    <div id="historyList"></div>
-  </div>
-</div>
+  <h1>🥤 Sugarcane Stall</h1>
+  <p>Enter your college mail to login</p>
 
-<!-- ENTRY -->
-<div class="card">
-  <label>Date</label>
-  <select id="date">
-    <option value="">-- Select Day --</option>
-    <option>27 Feb (Day-1)</option>
-    <option>28 Feb (Day-2)</option>
-  </select>
+  <input
+    type="email"
+    id="emailInput"
+    placeholder="example@student.gitam.edu"
+  />
 
-  <label style="margin-top:8px;">Time Slot</label>
-  <select id="hour">
-    <option value="">-- Select Slot --</option>
-    <option>3 PM - 4 PM</option>
-    <option>4 PM - 5 PM</option>
-    <option>5 PM - 6 PM</option>
-    <option>6 PM - 7 PM</option>
-    <option>7 PM - 8 PM</option>
-    <option>8 PM - 9 PM</option>
-    <option>9 PM - 10 PM</option>
-  </select>
+  <!-- LOGIN BUTTON ALWAYS VISIBLE -->
+  <button onclick="login()">Login</button>
 
-  <label style="margin-top:8px;">Amount (₹)</label>
-  <input type="number" id="amount" placeholder="Enter amount">
-
-  <button onclick="addSale()">Add Entry</button>
-</div>
-
-<!-- SUMMARY -->
-<div class="card summary">
-  <h2>Total Sales: ₹ <span id="totalSales">0</span></h2>
-  <div id="profit" class="profit negative">Profit/Loss: ₹ -30000</div>
-  <small>Investment: ₹30,000</small>
-</div>
-
-<div class="card">
-  <button class="export" onclick="exportCSV()">📤 Export to Excel</button>
-</div>
-
+  <div class="footer">Authorized access only</div>
 </div>
 
 <script>
-const INVESTMENT = 30000;
-const STORAGE_KEY = "sugarcane_sales_with_sheet";
-const SHEET_URL = "https://script.google.com/macros/s/AKfycbzxfmH06Kn7c7YpG7vB6md7fMb8HO-F8ezOT4dSqSyOlE0XqxmI-W0fLMgjHGpLPlB3/exec";
+/* ===== ACCESS LISTS ===== */
+const billingUsers = [
+  "lchittin@student.gitam.edu", // Sowmya
+  "kthatipa@student.gitam.edu", // Srinivas
+  "snamani2@student.gitam.edu"  // Sravan
+];
 
-let data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-let totalSales = 0;
+const viewUsers = [
+  "bmabbu2@student.gitam.edu",
+  "hakula2@student.gitam.edu",
+  "jjampan2@student.gitam.edu",
+  "smothe2@student.gitam.edu",
+  "sgolaga3@student.gitam.edu",
+  "svemuri1@student.gitam.edu",
+  "vreddi@student.gitam.edu",
+  "vvarun2@student.gitam.edu",
+  "vchippe@student.gitam.edu"
+];
 
-function saveLocal() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-}
+function login() {
+  const emailInput = document.getElementById("emailInput");
+  const email = emailInput.value.trim().toLowerCase();
 
-function toggleHistory() {
-  historySection.classList.toggle("hidden");
-}
-
-function syncToSheet(entry) {
-  fetch(SHEET_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(entry)
-  }).catch(() => {
-    alert("⚠️ Internet issue. Sheet sync failed.");
-  });
-}
-
-function addSale() {
-  if (!dateSel.value || !hourSel.value || !amountInput.value) {
-    alert("Select date, time slot and enter amount");
+  if (!email) {
+    alert("Please enter your college mail");
     return;
   }
 
-  const exists = data.find(d => d.date === dateSel.value && d.hour === hourSel.value);
-  if (exists) {
-    alert("This slot already entered. Edit from History.");
+  // ✅ Billing access
+  if (billingUsers.includes(email)) {
+    window.location.href = "billing.html";
     return;
   }
 
-  const entry = {
-    date: dateSel.value,
-    slot: hourSel.value,
-    amount: Number(amountInput.value)
-  };
-
-  data.push(entry);
-  saveLocal();
-  syncToSheet(entry);
-  render();
-
-  // auto next slot
-  if (hourSel.selectedIndex < hourSel.options.length - 1) {
-    hourSel.selectedIndex++;
-  } else {
-    hourSel.selectedIndex = 0;
+  // 👀 View-only access
+  if (viewUsers.includes(email)) {
+    window.location.href = "view.html";
+    return;
   }
 
-  amountInput.value = "";
+  // ❌ Unauthorized → full glitch
+  triggerGlitch(emailInput);
 }
 
-function editEntry(i) {
-  const newAmount = prompt("Edit final amount:", data[i].amount);
-  if (newAmount !== null && !isNaN(newAmount)) {
-    data[i].amount = Number(newAmount);
-    saveLocal();
-    syncToSheet({
-      date: data[i].date,
-      slot: data[i].hour + " (Edited)",
-      amount: data[i].amount
-    });
-    render();
-  }
+function triggerGlitch(input) {
+  document.body.classList.add("glitch");
+
+  setTimeout(() => {
+    document.body.classList.remove("glitch");
+    input.value = "";
+  }, 1500);
 }
-
-function render() {
-  historyList.innerHTML = "";
-  totalSales = 0;
-
-  data.forEach((d, i) => {
-    totalSales += d.amount;
-    const row = document.createElement("div");
-    row.className = "row";
-    row.innerHTML = `
-      <span>${d.date}</span>
-      <span>${d.slot || d.hour}</span>
-      <span>₹${d.amount}</span>
-      <button class="small-btn" onclick="editEntry(${i})">✏️</button>
-    `;
-    historyList.appendChild(row);
-  });
-
-  totalSalesSpan.innerText = totalSales;
-  const profitVal = totalSales - INVESTMENT;
-  profitDiv.innerText = "Profit/Loss: ₹ " + profitVal;
-  profitDiv.className = profitVal >= 0 ? "profit positive" : "profit negative";
-}
-
-function exportCSV() {
-  let csv = "Date,Time Slot,Amount\n";
-  data.forEach(d => {
-    csv += `${d.date},${d.slot || d.hour},${d.amount}\n`;
-  });
-  csv += `\nTotal Sales,${totalSales}\nInvestment,${INVESTMENT}\nProfit/Loss,${totalSales - INVESTMENT}`;
-
-  const blob = new Blob([csv], { type: "text/csv" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "sugarcane_sales.csv";
-  a.click();
-}
-
-const dateSel = document.getElementById("date");
-const hourSel = document.getElementById("hour");
-const amountInput = document.getElementById("amount");
-const historyList = document.getElementById("historyList");
-const historySection = document.getElementById("historySection");
-const totalSalesSpan = document.getElementById("totalSales");
-const profitDiv = document.getElementById("profit");
-
-render();
 </script>
 
 </body>

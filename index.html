@@ -11,7 +11,7 @@
 body {
   margin: 0;
   font-family: system-ui, sans-serif;
-  background: linear-gradient(160deg, #69b0aa, #202422);
+  background: #f1f5f9;
 }
 
 .container {
@@ -25,12 +25,12 @@ body {
   border-radius: 16px;
   padding: 15px;
   margin-bottom: 15px;
-  box-shadow: 0 12px 25px rgba(0,0,0,0.2);
+  box-shadow: 0 12px 25px rgba(0,0,0,0.15);
 }
 
 h1 {
   text-align: center;
-  color: #af5833;
+  color: #166534;
 }
 
 label {
@@ -53,7 +53,7 @@ button {
   margin-top: 10px;
   border: none;
   border-radius: 10px;
-  background: #11998e;
+  background: #16a34a;
   color: white;
   font-size: 16px;
   font-weight: bold;
@@ -86,13 +86,9 @@ button {
   font-size: 13px;
 }
 
-.hidden {
-  display: none;
-}
+.hidden { display: none; }
 
-.export {
-  background: #333;
-}
+.export { background: #334155; }
 </style>
 </head>
 
@@ -152,17 +148,28 @@ button {
 
 <script>
 const INVESTMENT = 30000;
-const STORAGE_KEY = "sugarcane_sales_final";
+const STORAGE_KEY = "sugarcane_sales_with_sheet";
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbzxfmH06Kn7c7YpG7vB6md7fMb8HO-F8ezOT4dSqSyOlE0XqxmI-W0fLMgjHGpLPlB3/exec";
 
 let data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
 let totalSales = 0;
 
-function save() {
+function saveLocal() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
 
 function toggleHistory() {
   historySection.classList.toggle("hidden");
+}
+
+function syncToSheet(entry) {
+  fetch(SHEET_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(entry)
+  }).catch(() => {
+    alert("⚠️ Internet issue. Sheet sync failed.");
+  });
 }
 
 function addSale() {
@@ -171,28 +178,26 @@ function addSale() {
     return;
   }
 
-  // Block duplicate slot per date
-  const exists = data.find(
-    d => d.date === dateSel.value && d.hour === hourSel.value
-  );
+  const exists = data.find(d => d.date === dateSel.value && d.hour === hourSel.value);
   if (exists) {
-    alert("This time slot is already entered.\nPlease edit from History.");
+    alert("This slot already entered. Edit from History.");
     return;
   }
 
-  data.push({
+  const entry = {
     date: dateSel.value,
-    hour: hourSel.value,
+    slot: hourSel.value,
     amount: Number(amountInput.value)
-  });
+  };
 
-  save();
+  data.push(entry);
+  saveLocal();
+  syncToSheet(entry);
   render();
 
-  // Auto select next slot
-  const currentIndex = hourSel.selectedIndex;
-  if (currentIndex < hourSel.options.length - 1) {
-    hourSel.selectedIndex = currentIndex + 1;
+  // auto next slot
+  if (hourSel.selectedIndex < hourSel.options.length - 1) {
+    hourSel.selectedIndex++;
   } else {
     hourSel.selectedIndex = 0;
   }
@@ -200,11 +205,16 @@ function addSale() {
   amountInput.value = "";
 }
 
-function editEntry(index) {
-  const newAmount = prompt("Edit final amount:", data[index].amount);
+function editEntry(i) {
+  const newAmount = prompt("Edit final amount:", data[i].amount);
   if (newAmount !== null && !isNaN(newAmount)) {
-    data[index].amount = Number(newAmount);
-    save();
+    data[i].amount = Number(newAmount);
+    saveLocal();
+    syncToSheet({
+      date: data[i].date,
+      slot: data[i].hour + " (Edited)",
+      amount: data[i].amount
+    });
     render();
   }
 }
@@ -215,12 +225,11 @@ function render() {
 
   data.forEach((d, i) => {
     totalSales += d.amount;
-
     const row = document.createElement("div");
     row.className = "row";
     row.innerHTML = `
       <span>${d.date}</span>
-      <span>${d.hour}</span>
+      <span>${d.slot || d.hour}</span>
       <span>₹${d.amount}</span>
       <button class="small-btn" onclick="editEntry(${i})">✏️</button>
     `;
@@ -236,9 +245,8 @@ function render() {
 function exportCSV() {
   let csv = "Date,Time Slot,Amount\n";
   data.forEach(d => {
-    csv += `${d.date},${d.hour},${d.amount}\n`;
+    csv += `${d.date},${d.slot || d.hour},${d.amount}\n`;
   });
-
   csv += `\nTotal Sales,${totalSales}\nInvestment,${INVESTMENT}\nProfit/Loss,${totalSales - INVESTMENT}`;
 
   const blob = new Blob([csv], { type: "text/csv" });
@@ -248,7 +256,6 @@ function exportCSV() {
   a.click();
 }
 
-// DOM refs
 const dateSel = document.getElementById("date");
 const hourSel = document.getElementById("hour");
 const amountInput = document.getElementById("amount");
@@ -257,7 +264,6 @@ const historySection = document.getElementById("historySection");
 const totalSalesSpan = document.getElementById("totalSales");
 const profitDiv = document.getElementById("profit");
 
-// Load cached data
 render();
 </script>
 
